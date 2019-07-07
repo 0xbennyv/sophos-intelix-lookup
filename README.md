@@ -13,3 +13,5 @@ python run.py
 To come:
 - Check for IP and FQDN as well as hashes.
 - Threading for quicker lookups.
+
+sample JSON and IOC's included
