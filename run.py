@@ -8,79 +8,144 @@ import os
 import csv
 # Import Time
 import time
-
-# Time for CSV File
-time = time.localtime()
-time = f'{time[0]}{time[1]}{time[2]}{time[3]}{time[4]}'
+# Import URLParse library to validate URLS in IOCS
+from urllib.parse import urlparse
 
 # Setup the command line args
 authorization = ''
 
 
-# Make the Hash Lookup
-def hash_lookup(file):
+# Check to see if IOC is a hash or FQDN then pass to the correct function.
+def ioc_check(file):
     # Reading the file that was passed to the function line by line.
     # Long term this should be threaded
     with open(file) as fp:
-        for file_hash in fp:
-            file_hash = file_hash.strip()
-            url = f'https://de.api.labs.sophos.com/lookup/files/v1/{file_hash}'
-            headers = {'Authorization': authorization,
-                       'content-type': 'application/json'}
-            # Make the request
-            response = requests.get(url, headers=headers)
-
-            # Get the JSON response in Python DICT
-            json_response = response.json()
-
-            # Print response for debugging
-            # print(json_response)
-
-            reqid = json_response['requestId']
-
-            # Processing and error handling currently handled here so data can be processed by an additional
-            # Check the see if Detection Name exists in response Dict
-            try:
-                json_response['error']
-
-            # If error doesn't exist, sets vars for post processing
-            except:
-                # Test to see if detectionName key exists - if it doesn't it'll mark it unknown
-                try:
-                    json_response['detectionName']
-                except KeyError:
-                    dectectionname = "Unknown"
-                else:
-                    dectectionname = json_response['detectionName']
-
-                # Rep Score and Reputation Interpretation
-                repscore = json_response['reputationScore']
-                if int(repscore) >= 0 <= 19:
-                    repclasification = 'Malicous'
-
-                elif int(repscore) >= 20 <= 29:
-                    repclasification = 'PUA'
-
-                elif int(repscore) >= 30 <= 69:
-                    repclasification = 'Unknown/Suspicious'
-
-                elif int(repscore) >= 70 <= 100:
-                    repclasification = 'Known Good'
-
-            # If there's an error then return values
+        for ioc in fp:
+            ioc = ioc.strip()
+            o = urlparse(ioc)
+            # If scheme or netlock is set then deem a URL, else treat as a hash
+            if o[0] or o[1]:
+                # we need to use the URLParse and get the netlock
+                ioc = o[1]
+                url_lookup(ioc)
             else:
-                repscore = 'Unknown'
-                dectectionname = 'Unknown'
-                repclasification = 'Unknown'
+                hash_lookup(ioc)
 
-            # print(f'{file_hash}, {repscore},{dectectionname},{repclasification}')
-            write_csv(file_hash, repscore, dectectionname, repclasification)
+
+# Make the URL Lookup
+def url_lookup(ioc):
+    url = f'https://de.api.labs.sophos.com/lookup/urls/v1/{ioc}'
+    headers = {'Authorization': authorization,
+               'content-type': 'application/json'}
+    # Make the request
+    response = requests.get(url, headers=headers)
+
+    # Get the JSON response in Python DICT
+    json_response = response.json()
+
+    # Print response for debugging
+    # print(json_response)
+
+    # Processing and error handling currently handled here so data can be processed by an additional
+    # Check the see if Detection Name exists in response Dict
+    try:
+        json_response['error']
+
+    # If error doesn't exist, sets vars for post processing
+    except KeyError:
+        # Intelix Sends inconsistent Fields so we need to check to see what exists in order for processing.
+        # This could be tidied
+        # Check to see if Product Category Exists
+        try:
+            json_response['productivityCategory']
+        except KeyError:
+            prodcategory = 'Unknown'
+        else:
+            prodcategory = json_response['productivityCategory']
+
+        # Check to see if Security Category Exists
+        try:
+            json_response['securityCategory']
+        except KeyError:
+            securitycategory = 'Unknown'
+        else:
+            securitycategory = json_response['securityCategory']
+
+        # Check to see if Risk Level Exists
+        try:
+            json_response['riskLevel']
+        except KeyError:
+            risklevel = 'Unknown'
+        else:
+            risklevel = json_response['riskLevel']
+
+    # If there's an error then return values
+    else:
+        prodcategory = 'Unknown'
+        securitycategory = 'Unknown'
+        risklevel = 'Unknown'
+
+    # print(f'{ioc}, {prodcategory},{securitycategory},{risklevel}')
+    write_csv(ioc, prodcategory, securitycategory, risklevel)
+
+
+# Make the Hash Lookup
+def hash_lookup(ioc):
+    url = f'https://de.api.labs.sophos.com/lookup/files/v1/{ioc}'
+    headers = {'Authorization': authorization,
+               'content-type': 'application/json'}
+    # Make the request
+    response = requests.get(url, headers=headers)
+
+    # Get the JSON response in Python DICT
+    json_response = response.json()
+
+    # Print response for debugging
+    # Print(json_response)
+
+    # Processing and error handling currently handled here so data can be processed by an additional
+    # Check the see if Detection Name exists in response Dict
+    try:
+        json_response['error']
+
+    # If error doesn't exist, sets vars for post processing
+    except:
+        # Test to see if detectionName key exists - if it doesn't it'll mark it unknown
+        try:
+            json_response['detectionName']
+        except KeyError:
+            dectectionname = "Unknown"
+        else:
+            dectectionname = json_response['detectionName']
+
+        # Rep Score and Reputation Interpretation
+        repscore = json_response['reputationScore']
+        if int(repscore) >= 0 <= 19:
+            repclasification = 'Malicous'
+
+        elif int(repscore) >= 20 <= 29:
+            repclasification = 'PUA'
+
+        elif int(repscore) >= 30 <= 69:
+            repclasification = 'Unknown/Suspicious'
+
+        elif int(repscore) >= 70 <= 100:
+            repclasification = 'Known Good'
+
+    # If there's an error then return values
+    else:
+        repscore = 'Unknown'
+        dectectionname = 'Unknown'
+        repclasification = 'Unknown'
+
+    # print(f'{ioc}, {repscore},{dectectionname},{repclasification}')
+    write_csv(ioc, repscore, dectectionname, repclasification)
 
 
 # Get all the data and pass it to CSV
-def write_csv(file_hash, repscore, dectectionname, repclasification):
+def write_csv(ioc, col1, col2, col3):
     # Create the DICT that we'll convert to CSV
-    csv_data = [f'{file_hash},{repscore},{dectectionname},{repclasification}']
+    csv_data = [f'{ioc},{col1},{col2},{col3}']
     # print(csv_data)
     # Create and Write the results to CSV
     with open(f'{time}_intelix_result.csv', 'a') as fp:
@@ -95,9 +160,9 @@ def user_input():
     # Check to make sure the path is valid and continue
     if os.path.isfile(file):
         print(f'[*] File {file} is valid')
-        print('[*] Proceeding to Check the hash against SOPHOS Intelix')
+        print('[*] Proceeding to check the IoC against SOPHOS Intelix')
         # Do a hash lookup of the file, if this fails it'll then upload the file
-        hash_lookup(file)
+        ioc_check(file)
         # If the file is not valid it'll then ask the question again
     else:
         print(f'[*] File {file} is NOT valid')
@@ -107,6 +172,10 @@ def user_input():
 
 # Let's rock the casbah!
 if __name__ == "__main__":
+    # Time for CSV File, generated at the start so it doesn't change during a large lookup
+    time = time.localtime()
+    time = f'{time[0]}{time[1]}{time[2]}{time[3]}{time[4]}'
+
     # Check to see if the arg for a file has been set.
     # This isn't as clean as it should be and will get a facelift at some point.
     try:
@@ -121,7 +190,8 @@ if __name__ == "__main__":
         file = str(sys.argv[1])
         if os.path.isfile(file):
             print(f'[*] File {file} is valid')
-            print(f'[*] Starting hash lookup with SOPHOS Intelix')
-            hash_lookup(file)
+            print(f'[*] Starting IoC lookup with SOPHOS Intelix')
+            ioc_check(file)
         else:
             print(f'[*] File {file} is NOT valid')
+
