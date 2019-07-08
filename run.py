@@ -160,7 +160,7 @@ def user_input():
     # Check to make sure the path is valid and continue
     if os.path.isfile(file):
         print(f'[*] File {file} is valid')
-        print('[*] Proceeding to check the IoC against SOPHOS Intelix')
+        print('[*] Proceeding to check the IoC against SOPHOS Labs Intelix')
         # Do a hash lookup of the file, if this fails it'll then upload the file
         ioc_check(file)
         # If the file is not valid it'll then ask the question again
@@ -190,7 +190,7 @@ if __name__ == "__main__":
         file = str(sys.argv[1])
         if os.path.isfile(file):
             print(f'[*] File {file} is valid')
-            print(f'[*] Starting IoC lookup with SOPHOS Intelix')
+            print(f'[*] Starting IoC lookup with SOPHOS Labs Intelix')
             ioc_check(file)
         else:
             print(f'[*] File {file} is NOT valid')
