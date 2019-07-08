@@ -11,7 +11,6 @@ Interactive Prompt
 python run.py
 
 To come:
-- Check for IP and FQDN as well as hashes.
 - Threading for quicker lookups.
 - Auto Authorization Token generation
 
