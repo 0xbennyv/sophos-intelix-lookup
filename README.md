@@ -11,10 +11,14 @@ There's some broad error checking to see if DICT keys appear from JSON request i
 Sample JSON and IOC's included for testing. This script is in no way suppored by SOPHOS.
 
 # Usage:
-CLI for scripting
+CLI for scripting:
+
 python run.py <ioc_file.txt>
+
 OR
-Interactive Prompt
+
+Interactive Prompt:
+
 python run.py
 
 # To come:
