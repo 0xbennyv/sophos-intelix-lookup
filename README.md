@@ -1,5 +1,5 @@
 # Description 
-This is an initial scratch up of interacting with the SOPHOS Intelix API that's in EAP(July 2019)
+This is an initial scratch up of interacting with the SOPHOSLabs Intelix API that's in EAP(July 2019)
 http://sophos.com/intelix.
 
 The script reads a list of IoC's, makes a check to see if there's a URL or File Hash and then does a URL or Hash lookup piping information into a CSV file.
