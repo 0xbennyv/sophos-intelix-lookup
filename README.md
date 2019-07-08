@@ -13,7 +13,7 @@ Sample JSON and IOC's included for testing. This script is in no way suppored by
 # Usage:
 CLI for scripting
 python run.py <ioc_file.txt>
-# OR
+OR
 Interactive Prompt
 python run.py
 
