@@ -1,18 +1,9 @@
-# Requests for web call to REST API
-import requests
-# System for CLI Args
-import sys
-# OS for File Validation
-import os
-# CSV for exporting to CSV
-import csv
-# Import Time
-import time
+# Import Required Libraries
+import requests, sys, os, csv, time, base64, json
 # Import URLParse library to validate URLS in IOCS
 from urllib.parse import urlparse
 
-# Setup the command line args
-authorization = ''
+
 
 
 # Check to see if IOC is a hash or FQDN then pass to the correct function.
@@ -120,16 +111,16 @@ def hash_lookup(ioc):
 
         # Rep Score and Reputation Interpretation
         repscore = json_response['reputationScore']
-        if int(repscore) >= 0 <= 19:
+        if int(repscore) >= 0 and int(repscore) <= 19:
             repclasification = 'Malicous'
 
-        elif int(repscore) >= 20 <= 29:
+        elif int(repscore) >= 20 and int(repscore) <= 29:
             repclasification = 'PUA'
 
-        elif int(repscore) >= 30 <= 69:
+        elif int(repscore) >= 30 and int(repscore) <= 69:
             repclasification = 'Unknown/Suspicious'
 
-        elif int(repscore) >= 70 <= 100:
+        elif int(repscore) >= 70 and int(repscore) <= 100:
             repclasification = 'Known Good'
 
     # If there's an error then return values
@@ -172,6 +163,20 @@ def user_input():
 
 # Let's rock the casbah!
 if __name__ == "__main__":
+    client_id = ""
+    secret = ""
+
+    auth_token = client_id + ":" + secret
+    auth_headers = {'Authorization' : "Basic " + base64.b64encode(auth_token.encode('UTF-8')).decode('ascii'),\
+		            'Content-Type' : 'application/x-www-form-urlencoded'}
+    authURI = "https://api.labs.sophos.com/oauth2/token"
+    try:
+        r = requests.post(authURI,headers=auth_headers, data="grant_type=client_credentials")
+        response = json.loads(r.text)
+        authorization = response.get('access_token')
+    except requests.exceptions.HTTPError as err:
+        print(err)
+
     # Time for CSV File, generated at the start so it doesn't change during a large lookup
     time = time.localtime()
     time = f'{time[0]}{time[1]}{time[2]}{time[3]}{time[4]}'
@@ -194,4 +199,5 @@ if __name__ == "__main__":
             ioc_check(file)
         else:
             print(f'[*] File {file} is NOT valid')
+
 
