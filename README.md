@@ -15,7 +15,7 @@ Sample JSON and IOC's included for testing. This script is in no way suppored by
 # Usage:
 
 Authentication for Intelix is needed, ensure you've read the 'How to Register' at the URL above to obtain a Client ID and Client Secret.
-For now, place these within the run.py, within the quotation marks on lines 162 and 163 respectively.
+For now, place these within the run.py, within the quotation marks on lines 163 and 164 respectively.
 
 CLI for scripting:
 
