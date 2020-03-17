@@ -3,9 +3,6 @@ import requests, sys, os, csv, time, base64, json
 # Import URLParse library to validate URLS in IOCS
 from urllib.parse import urlparse
 
-
-
-
 # Check to see if IOC is a hash or FQDN then pass to the correct function.
 def ioc_check(file):
     # Reading the file that was passed to the function line by line.
@@ -72,9 +69,9 @@ def url_lookup(ioc):
 
     # If there's an error then return values
     else:
-        prodcategory = 'Unknown'
-        securitycategory = 'Unknown'
-        risklevel = 'Unknown'
+        prodcategory = 'LookupFailure'
+        securitycategory = 'LookupFailure'
+        risklevel = 'LookupFailure'
 
     # print(f'{ioc}, {prodcategory},{securitycategory},{risklevel}')
     write_csv(ioc, prodcategory, securitycategory, risklevel)
@@ -112,7 +109,7 @@ def hash_lookup(ioc):
         # Rep Score and Reputation Interpretation
         repscore = json_response['reputationScore']
         if int(repscore) >= 0 and int(repscore) <= 19:
-            repclasification = 'Malicous'
+            repclasification = 'Malicious'
 
         elif int(repscore) >= 20 and int(repscore) <= 29:
             repclasification = 'PUA'
@@ -125,9 +122,9 @@ def hash_lookup(ioc):
 
     # If there's an error then return values
     else:
-        repscore = 'Unknown'
-        dectectionname = 'Unknown'
-        repclasification = 'Unknown'
+        repscore = 'LookupFailure'
+        dectectionname = 'LookupFailure'
+        repclasification = 'LookupFailure'
 
     # print(f'{ioc}, {repscore},{dectectionname},{repclasification}')
     write_csv(ioc, repscore, dectectionname, repclasification)
@@ -199,5 +196,3 @@ if __name__ == "__main__":
             ioc_check(file)
         else:
             print(f'[*] File {file} is NOT valid')
-
-
